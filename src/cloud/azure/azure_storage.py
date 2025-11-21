@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 
 
@@ -7,7 +6,7 @@ class AzureStorage:
             self):
         from azure.storage.blob import BlobServiceClient
 
-        def get_service_client(
+        def _get_service_client(
                 account_name: str) -> BlobServiceClient:
             """
             Create a BlobServiceClient using DefaultAzureCredential.
@@ -26,7 +25,16 @@ class AzureStorage:
 
             return BlobServiceClient(account_url, credential=credential)  # noqa
 
-        self._blob_client = get_service_client(os.environ.get('AZURE_ACCOUNT_NAME'))
+        from dotenv import load_dotenv
+        import os
+
+        # Load environment variables from the .env file.
+        load_dotenv()
+
+        # Access environment variables
+        account = os.getenv("AZURE_ACCOUNT_NAME")
+
+        self._blob_client = _get_service_client(account)
 
     def copy_object(
             self,
@@ -79,17 +87,6 @@ class AzureStorage:
             self,
             container_name: str,
             object_key: str) -> BytesIO:
-        """
-        Get blob content by key as BytesIO object.
-
-        Args:
-            container_name: Name of the container
-            object_key: The blob name/key
-
-        Returns:
-            BytesIO object containing blob content
-        """
-
         blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
         blob_data = blob_client.download_blob().readall()
 
@@ -99,13 +96,6 @@ class AzureStorage:
             self,
             container_name: str,
             prefix: str):
-        """
-
-        :param container_name:
-        :param prefix:
-        :return:
-        """
-
         container_client = self._blob_client.get_container_client(container_name)
         blob_list = container_client.list_blobs(name_starts_with=prefix)
 
@@ -115,10 +105,3 @@ class AzureStorage:
             object_keys.append(blob.name)
 
         return object_keys
-
-
-ac = AzureStorage()
-obj_list = ac.list_objects('test-1', 'dir1/2025')
-
-b = ac.get_object('test-1', obj_list[0])
-print(b)
