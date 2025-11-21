@@ -84,6 +84,25 @@ class AzureStorage(Storage):
 
         return copy_operation
 
+    def delete_object(
+            self,
+            container_name: str,
+            object_key: str,
+            **kwargs):
+        """
+        Delete a blob from the specified container.
+
+        Args:
+            container_name: Name of the container
+            object_key: The blob name/key to delete
+            **kwargs: Additional arguments (e.g., delete_snapshots, timeout, lease)
+
+        Returns:
+            None
+        """
+        blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
+        blob_client.delete_blob(**kwargs)
+
     def get_object(
             self,
             container_name: str,
