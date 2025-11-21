@@ -197,3 +197,38 @@ class AzureStorage(Storage):
             object_keys.append(blob.name)
 
         return object_keys
+
+    def objects_exist(
+            self,
+            container_name: str,
+            prefix: str,
+            **kwargs) -> bool:
+        """
+        Check if one or more objects exist in the container with the supplied prefix.
+
+        Args:
+            container_name: Name of the container
+            prefix: Prefix to filter blob names
+            **kwargs: Additional arguments (e.g., timeout)
+
+        Returns:
+            True if at least one object exists with the prefix, False otherwise
+        """
+        try:
+            container_client = self._blob_client.get_container_client(container_name)
+
+            # Use results_per_page=1 for efficiency since we only need to know if any exist.
+            blob_list = container_client.list_blobs(
+                name_starts_with=prefix,
+                results_per_page=1,
+                **kwargs
+            )
+
+            # Check if there's at least one blob.
+            for _ in blob_list:
+                return True
+
+            return False
+
+        except Exception:  # noqa
+            return False

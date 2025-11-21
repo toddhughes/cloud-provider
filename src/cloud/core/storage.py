@@ -62,3 +62,11 @@ class Storage(ABC):
             prefix: str,
             **kwargs):
         pass
+
+    @abstractmethod
+    def objects_exist(
+            self,
+            container_name: str,
+            prefix: str,
+            **kwargs) -> bool:
+        pass

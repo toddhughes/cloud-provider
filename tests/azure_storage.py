@@ -78,3 +78,17 @@ class TestContainer(unittest.TestCase):
 
         my_list = cloud.storage.list_objects(container_name, prefix)
         self.assertTrue(my_list, 'The list should not be empty.')
+
+    def test_objects_exist(
+            self):
+        container_name = 'test-1'
+        prefix = 'dir1/'
+
+        # Test with existing prefix.
+        exists = cloud.storage.objects_exist(container_name, prefix)
+        self.assertTrue(exists, 'Objects should exist with the given prefix.')
+
+        # Test with non-existing prefix.
+        non_existing_prefix = 'nonexistent/path/that/does/not/exist/'
+        not_exists = cloud.storage.objects_exist(container_name, non_existing_prefix)
+        self.assertFalse(not_exists, 'Objects should not exist with the non-existing prefix.')
