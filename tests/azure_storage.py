@@ -38,6 +38,31 @@ class TestContainer(unittest.TestCase):
         my_object = cloud.storage.get_object(target_container, target_key)
         self.assertFalse(my_object, 'The object should be empty.')
 
+    def test_download_object(
+            self):
+        import os
+        import tempfile
+
+        container_name = 'test-1'
+        object_key = 'dir1/20251006_091147.jpg'
+
+        # Create a temporary file path.
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+            download_path = tmp_file.name
+
+        try:
+            # Download the object.
+            cloud.storage.download_object(container_name, object_key, download_path)
+
+            # Assert the file was created and has content
+            self.assertTrue(os.path.exists(download_path), 'The downloaded file should exist.')
+            self.assertGreater(os.path.getsize(download_path), 0, 'The downloaded file should not be empty.')
+
+        finally:
+            # Clean up.
+            if os.path.exists(download_path):
+                os.remove(download_path)
+
     def test_get_object(
             self):
         container_name = 'test-1'

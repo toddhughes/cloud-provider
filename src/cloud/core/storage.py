@@ -39,6 +39,15 @@ class Storage(ABC):
         pass
 
     @abstractmethod
+    def download_object(
+            self,
+            container_name: str,
+            object_key: str,
+            download_path: str,
+            **kwargs):
+        pass
+
+    @abstractmethod
     def get_object(
             self,
             container_name: str,

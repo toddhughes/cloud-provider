@@ -113,6 +113,39 @@ class AzureStorage(Storage):
             blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
             blob_client.delete_blob(**kwargs)
 
+    def download_object(
+            self,
+            container_name: str,
+            object_key: str,
+            download_path: str,
+            **kwargs):
+        """
+        Download a blob from Azure Storage to a local file path.
+
+        Args:
+            container_name: Name of the container
+            object_key: The blob name/key to download
+            download_path: Local file path where the blob will be saved
+            **kwargs: Additional arguments (e.g., max_concurrency, timeout, version_id)
+
+        Returns:
+            None
+        """
+        from azure.core.exceptions import ResourceNotFoundError
+        import os
+
+        try:
+            # Create parent directories if they don't exist.
+            os.makedirs(os.path.dirname(download_path), exist_ok=True)
+
+            blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
+
+            with open(download_path, 'wb') as download_file:
+                download_file.write(cast(bytes, blob_client.download_blob(**kwargs).readall()))
+
+        except ResourceNotFoundError:
+            raise FileNotFoundError(f"Blob not found: {container_name}/{object_key}")
+
     def get_object(
             self,
             container_name: str,
