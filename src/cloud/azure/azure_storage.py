@@ -1,6 +1,6 @@
 from io import BytesIO
 from logging import Logger
-from typing import Union
+from typing import cast, Union
 
 from ..core.storage import Storage
 
@@ -31,7 +31,7 @@ class AzureStorage(Storage):
             account_url = f"https://{account_name}.blob.core.windows.net"
             credential = DefaultAzureCredential()
 
-            return BlobServiceClient(account_url, credential=credential)  # noqa
+            return BlobServiceClient(account_url, credential=credential, **self._kwargs)  # noqa
 
         from dotenv import load_dotenv
         import os
@@ -89,8 +89,19 @@ class AzureStorage(Storage):
             container_name: str,
             object_key: str,
             **kwargs) -> BytesIO:
+        """
+        Get blob content by key as BytesIO object.
+
+        Args:
+            container_name: Name of the container
+            object_key: The blob name/key
+            **kwargs: Additional arguments (e.g., max_concurrency, timeout, version_id)
+
+        Returns:
+            BytesIO object containing blob content
+        """
         blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
-        blob_data = blob_client.download_blob().readall()
+        blob_data = cast(bytes, blob_client.download_blob(**kwargs).readall())
 
         return BytesIO(blob_data)
 
@@ -99,8 +110,19 @@ class AzureStorage(Storage):
             container_name: str,
             prefix: str,
             **kwargs):
+        """
+        List blobs in a container with optional prefix filter.
+
+        Args:
+            container_name: Name of the container
+            prefix: Prefix to filter blob names
+            **kwargs: Additional arguments (e.g., include, timeout, results_per_page)
+
+        Returns:
+            List of blob names/keys
+        """
         container_client = self._blob_client.get_container_client(container_name)
-        blob_list = container_client.list_blobs(name_starts_with=prefix)
+        blob_list = container_client.list_blobs(name_starts_with=prefix, **kwargs)
 
         object_keys = []
 
