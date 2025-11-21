@@ -1,9 +1,17 @@
 from io import BytesIO
+from logging import Logger
+from typing import Union
+
+from ..core.storage import Storage
 
 
-class AzureStorage:
+class AzureStorage(Storage):
     def __init__(
-            self):
+            self,
+            logger: Union[Logger, None] = None,
+            **kwargs):
+        super().__init__(logger, **kwargs)
+
         from azure.storage.blob import BlobServiceClient
 
         def _get_service_client(
@@ -86,7 +94,8 @@ class AzureStorage:
     def get_object(
             self,
             container_name: str,
-            object_key: str) -> BytesIO:
+            object_key: str,
+            **kwargs) -> BytesIO:
         blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
         blob_data = blob_client.download_blob().readall()
 
@@ -95,7 +104,8 @@ class AzureStorage:
     def list_objects(
             self,
             container_name: str,
-            prefix: str):
+            prefix: str,
+            **kwargs):
         container_client = self._blob_client.get_container_client(container_name)
         blob_list = container_client.list_blobs(name_starts_with=prefix)
 
