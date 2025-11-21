@@ -107,7 +107,7 @@ class AzureStorage(Storage):
             self,
             container_name: str,
             object_key: str,
-            **kwargs) -> BytesIO:
+            **kwargs) -> Union[BytesIO, None]:
         """
         Get blob content by key as BytesIO object.
 
@@ -117,12 +117,17 @@ class AzureStorage(Storage):
             **kwargs: Additional arguments (e.g., max_concurrency, timeout, version_id)
 
         Returns:
-            BytesIO object containing blob content
+            BytesIO object containing blob content, or None if blob not found
         """
-        blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
-        blob_data = cast(bytes, blob_client.download_blob(**kwargs).readall())
+        from azure.core.exceptions import ResourceNotFoundError
 
-        return BytesIO(blob_data)
+        try:
+            blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
+            blob_data = cast(bytes, blob_client.download_blob(**kwargs).readall())
+
+            return BytesIO(blob_data)
+        except ResourceNotFoundError:
+            return None
 
     def list_objects(
             self,

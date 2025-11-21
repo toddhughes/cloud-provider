@@ -35,7 +35,7 @@ class Storage(ABC):
             self,
             container_name: str,
             object_key: str,
-            **kwargs) -> BytesIO:
+            **kwargs) -> Union[BytesIO, None]:
         pass
 
     @abstractmethod
