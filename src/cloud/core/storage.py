@@ -17,8 +17,8 @@ class Storage(ABC):
             self,
             source_container: str,
             source_key: str,
-            destination_container: str,
-            destination_key: str,
+            target_container: str,
+            target_key: str,
             **kwargs):
         pass
 
