@@ -1,6 +1,6 @@
 from io import BytesIO
 from logging import Logger
-from typing import cast, Union
+from typing import cast, Literal, Sequence, Union
 
 from ..core.storage import Storage
 
@@ -232,6 +232,47 @@ class AzureStorage(Storage):
 
         except Exception:  # noqa
             return False
+
+    def read_into_df(
+            self,
+            container_name: str,
+            object_key: str,
+            separator: Union[str, None],
+            header: Union[int, Sequence[int], Literal['infer', None]],
+            na_values: Union[str, int, None],
+            **kwargs):
+        """
+        Read a blob from Azure Storage into a pandas DataFrame.
+
+        Args:
+            container_name: Name of the container
+            object_key: The blob name/key to read
+            separator: Delimiter to use (e.g., ',' for CSV, '\t' for TSV, None for whitespace)
+            header: Row number(s) to use as column names, 'infer' to auto-detect, or None for no header
+            na_values: Additional strings to recognize as NA/NaN
+            **kwargs: Additional arguments to pass to pandas.read_csv
+
+        Returns:
+            pandas DataFrame, or None if blob not found
+        """
+        import pandas as pd
+
+        # Get the object as BytesIO.
+        blob_data = self.get_object(container_name, object_key, **kwargs)
+
+        if blob_data is None:
+            return None
+
+        # Read into DataFrame.
+        df = pd.read_csv(
+            blob_data,
+            sep=separator,
+            header=header,
+            na_values=na_values,
+            **kwargs
+        )
+
+        return df
 
     def upload_object(
             self,

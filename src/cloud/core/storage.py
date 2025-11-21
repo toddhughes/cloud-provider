@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from io import BytesIO
 from logging import Logger
-from typing import Union
+from typing import Literal, Sequence, Union
 
 
 class Storage(ABC):
@@ -69,6 +69,17 @@ class Storage(ABC):
             container_name: str,
             prefix: str,
             **kwargs) -> bool:
+        pass
+
+    @abstractmethod
+    def read_into_df(
+            self,
+            container_name: str,
+            object_key: str,
+            separator: Union[str, None],
+            header: Union[int, Sequence[int], Literal['infer', None]],
+            na_values: Union[str, int, None],
+            **kwargs):
         pass
 
     @abstractmethod

@@ -93,6 +93,52 @@ class TestContainer(unittest.TestCase):
         not_exists = cloud.storage.objects_exist(container_name, non_existing_prefix)
         self.assertFalse(not_exists, 'Objects should not exist with the non-existing prefix.')
 
+    def test_read_into_df(
+            self):
+        import pandas as pd
+        from io import BytesIO
+
+        container_name = 'test-1'
+        object_key = 'data/test_data.csv'
+
+        # Create and upload test CSV data.
+        test_csv = "col1,col2,col3\n1,2,3\n4,5,6\n7,8,9"
+        csv_data = BytesIO(test_csv.encode('utf-8'))
+
+        # Upload the test data.
+        cloud.storage.upload_object(csv_data, container_name, object_key, overwrite=True)
+
+        try:
+            # Read into DataFrame.
+            df = cloud.storage.read_into_df(
+                container_name,
+                object_key,
+                separator=',',
+                header='infer',
+                na_values=None
+            )
+
+            # Assertions.
+            self.assertIsNotNone(df, 'The DataFrame should not be None.')
+            self.assertIsInstance(df, pd.DataFrame, 'The result should be a pandas DataFrame.')
+            self.assertEqual(len(df), 3, 'The DataFrame should have 3 rows.')
+            self.assertEqual(len(df.columns), 3, 'The DataFrame should have 3 columns.')
+            self.assertListEqual(list(df.columns), ['col1', 'col2', 'col3'], 'Column names should match.')
+
+            # Test non-existent file.
+            df_none = cloud.storage.read_into_df(
+                container_name,
+                'nonexistent.csv',
+                separator=',',
+                header='infer',
+                na_values=None
+            )
+            self.assertIsNone(df_none, 'Should return None for non-existent file.')
+
+        finally:
+            # Clean up.
+            cloud.storage.delete_object(container_name, object_key)
+
     def test_upload_object(
             self):
         import os
