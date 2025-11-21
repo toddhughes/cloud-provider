@@ -103,6 +103,16 @@ class AzureStorage(Storage):
         blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
         blob_client.delete_blob(**kwargs)
 
+    def delete_objects(
+            self,
+            container_name: str,
+            object_keys: list[str],
+            **kwargs):
+
+        for object_key in object_keys:
+            blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
+            blob_client.delete_blob(**kwargs)
+
     def get_object(
             self,
             container_name: str,

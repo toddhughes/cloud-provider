@@ -31,6 +31,14 @@ class Storage(ABC):
         pass
 
     @abstractmethod
+    def delete_objects(
+            self,
+            container_name: str,
+            object_keys: list[str],
+            **kwargs):
+        pass
+
+    @abstractmethod
     def get_object(
             self,
             container_name: str,
