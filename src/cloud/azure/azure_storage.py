@@ -28,6 +28,53 @@ class AzureStorage:
 
         self._blob_client = get_service_client(os.environ.get('AZURE_ACCOUNT_NAME'))
 
+    def copy_object(
+            self,
+            source_container: str,
+            source_key: str,
+            destination_container: str,
+            destination_key: str,
+            **kwargs):
+        def copy_object(
+                self,
+                source_container: str,
+                source_key: str,
+                destination_container: str,
+                destination_key: str,
+                **kwargs):
+            """
+            Copy a blob from source to destination within Azure Blob Storage.
+
+            Args:
+                source_container: Source container name
+                source_key: Source blob name/key
+                destination_container: Destination container name
+                destination_key: Destination blob name/key
+                **kwargs: Additional arguments (e.g., metadata, timeout)
+
+            Returns:
+                Copy operation properties
+            """
+            # Get the source blob client to construct the source URL
+            source_blob_client = self._blob_client.get_blob_client(
+                container=source_container,
+                blob=source_key
+            )
+
+            # Get the destination blob client
+            dest_blob_client = self._blob_client.get_blob_client(
+                container=destination_container,
+                blob=destination_key
+            )
+
+            # Start the copy operation using the source blob URL
+            copy_operation = dest_blob_client.start_copy_from_url(
+                source_blob_client.url,
+                **kwargs
+            )
+
+            return copy_operation
+
     def get_object(
             self,
             container_name: str,
