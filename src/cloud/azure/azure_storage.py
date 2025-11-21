@@ -232,3 +232,34 @@ class AzureStorage(Storage):
 
         except Exception:  # noqa
             return False
+
+    def upload_object(
+            self,
+            file: Union[str, BytesIO],
+            container_name: str,
+            object_key: str,
+            **kwargs):
+        """
+        Upload a file to Azure Blob Storage from a local file path or BytesIO object.
+
+        Args:
+            file: Local file path (str) or BytesIO object to upload
+            container_name: Name of the container
+            object_key: The blob name/key to create
+            **kwargs: Additional arguments (e.g., overwrite, metadata, content_settings, max_concurrency)
+
+        Returns:
+            None
+        """
+        blob_client = self._blob_client.get_blob_client(container=container_name, blob=object_key)
+
+        if isinstance(file, str):
+            # Upload from a file path.
+            with open(file, "rb") as data:
+                blob_client.upload_blob(data, **kwargs)
+        elif isinstance(file, BytesIO):
+            # Upload from BytesIO object.
+            file.seek(0)  # Reset to the beginning of BytesIO.
+            blob_client.upload_blob(file, **kwargs)
+        else:
+            raise TypeError("File must be either a string (file path) or BytesIO object")

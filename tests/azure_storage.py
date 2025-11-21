@@ -92,3 +92,48 @@ class TestContainer(unittest.TestCase):
         non_existing_prefix = 'nonexistent/path/that/does/not/exist/'
         not_exists = cloud.storage.objects_exist(container_name, non_existing_prefix)
         self.assertFalse(not_exists, 'Objects should not exist with the non-existing prefix.')
+
+    def test_upload_object(
+            self):
+        import os
+        import tempfile
+
+        container_name = 'test-1'
+        object_key = 'dir1/test_upload.txt'
+        test_content = b'This is a test file for upload.'
+
+        # Test 1: Upload from a file path.
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as tmp_file:
+            tmp_file.write(test_content)
+            tmp_path = tmp_file.name
+
+        try:
+            # Upload the file.
+            cloud.storage.upload_object(tmp_path, container_name, object_key, overwrite=True)
+
+            # Verify it was uploaded by downloading it back
+            downloaded = cloud.storage.get_object(container_name, object_key)
+            self.assertIsNotNone(downloaded, 'The uploaded object should exist.')
+            self.assertEqual(downloaded.read(), test_content, 'The uploaded content should match.')
+
+        finally:
+            # Clean up the local file.
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+            # Clean up uploaded blob.
+            cloud.storage.delete_object(container_name, object_key)
+
+        # Test 2: Upload from BytesIO.
+        from io import BytesIO
+        bytes_data = BytesIO(test_content)
+
+        cloud.storage.upload_object(bytes_data, container_name, object_key, overwrite=True)
+
+        # Verify it was uploaded.
+        downloaded = cloud.storage.get_object(container_name, object_key)
+        self.assertIsNotNone(downloaded, 'The uploaded object from BytesIO should exist.')
+        self.assertEqual(downloaded.read(), test_content, 'The uploaded content from BytesIO should match.')
+
+        # Clean up.
+        cloud.storage.delete_object(container_name, object_key)

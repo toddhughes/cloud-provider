@@ -70,3 +70,12 @@ class Storage(ABC):
             prefix: str,
             **kwargs) -> bool:
         pass
+
+    @abstractmethod
+    def upload_object(
+            self,
+            file: Union[str, BytesIO],
+            container_name: str,
+            object_key: str,
+            **kwargs):
+        pass
